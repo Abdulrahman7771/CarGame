@@ -51,9 +51,6 @@ class Enemy(sprite):
         self.reset()
     def reset(self):
         if(self.rect.y>=screen.get_height()):
-            #self.__init__(sprites[randint(0,1)]
-            #            ,pygame.Vector2(randint(int(x+50),int(lx)),randint(-400,100))
-            #            ,screen,group,0,randint(int(1),int(1)))
             pygame.sprite.Sprite.__init__(self)
             self.image = pygame.image.load(sprites[randint(0,3)]).convert_alpha()
             self.rect = self.image.get_rect()
@@ -100,14 +97,6 @@ while running:
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            with open("score.txt", "r") as f:
-                HighScore = f.read()
-                f.close()
-            with open("score.txt", "w") as f:
-                if(int(HighScore)<score):
-                    f.write(f"{score}")
-                else:
-                    f.write(f"{HighScore}")
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
@@ -139,7 +128,7 @@ while running:
         if(CanModifyScore):
             with open("score.txt", "r") as f:
                 HighScore = f.read()
-                print(f.read(),"ssssssssssssss")
+                print(f"{f.read()}: ssssssssssssss")
                 f.close()
             with open("score.txt", "w") as f:
                 if(int(HighScore)<score):
@@ -149,6 +138,8 @@ while running:
                     else:
                         performance = "Good Game"
                     HighScore = score
+                else:
+                    f.write(f"{HighScore}")
                 f.close()
             CanModifyScore = False
         EndGameText = myfont.render(f"{performance} Score: {score}", 0, "red")
