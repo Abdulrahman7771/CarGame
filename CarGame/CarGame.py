@@ -1,8 +1,8 @@
-from typing import Any
 import pygame
 from pygame.locals import *
 from random import randint
 import time
+from os.path import exists
 
 sprites = ["enemy1.png","enemy2.png","enemy3.png","enemy3.png"]
 
@@ -57,13 +57,16 @@ class Enemy(sprite):
             pygame.sprite.Sprite.__init__(self)
             self.image = pygame.image.load(sprites[randint(0,3)]).convert_alpha()
             self.rect = self.image.get_rect()
-            self.pos = pygame.Vector2(randint(int(x+50),int(lx)),randint(-400,0))
+            self.pos = pygame.Vector2(randint(int(x+50),int(lx)),-400)
             self.rect.center = self.pos
             pygame.draw.rect(self.image,"red",[0,0,self.rect.width,self.rect.height],5)
             screen.blit(self.image,self.rect)
             self.speed = randint(int(1),int(2))
 
-    
+if(not(exists("score.txt"))):
+            with open("score.txt", "w") as f:
+                f.write("0")
+            f.close()
 pygame.init()
 
 running = True
@@ -71,9 +74,8 @@ lost=False
 clock = pygame.time.Clock()
 dt = 0
 StartTime = time.time()
-RespawnRate = 3
 score = 0
-
+HighScore = 0
 screen = pygame.display.set_mode()  
 road = pygame.image.load("road.png").convert()
 pygame.draw.rect(road,"red",[0,0,road.get_rect().width,road.get_rect().height],5)
@@ -90,12 +92,27 @@ enemy1 = Enemy(sprites[randint(0,3)],pygame.Vector2(randint(int(x+50),int(lx)),r
 enemy2 = Enemy(sprites[randint(0,3)],pygame.Vector2(randint(int(x+50),int(lx)),randint(-400,100)),screen,group,0,1)
 enemy3 = Enemy(sprites[randint(0,3)],pygame.Vector2(randint(int(x+50),int(lx)),randint(-400,100)),screen,group,0,2)
 enemy4 = Enemy(sprites[randint(0,3)],pygame.Vector2(randint(int(x+50),int(lx)),randint(-400,100)),screen,group,0,2)
+CanModifyScore = True
+performance = "Good game"
+
 while running:
     screen.fill("green")
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            with open("score.txt", "r") as f:
+                HighScore = f.read()
+                f.close()
+            with open("score.txt", "w") as f:
+                if(int(HighScore)<score):
+                    f.write(f"{score}")
+                else:
+                    f.write(f"{HighScore}")
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                if(lost):
+                    running = False
 
     screen.blit(road,((screen.get_width() / 2 )-(road.get_width()/2), -10))
     
@@ -119,10 +136,33 @@ while running:
                 PPos.x += 7 * dt
         score = int((time.time() - StartTime))
     else:
-        EndGameText = myfont.render(f"Good game \n Score: {score} \n Better luck next time", 0, "red")
-        pygame.draw.rect(screen,"#00FFB9",[(screen.get_width() / 2)-(EndGameText.get_width()/2), screen.get_height()/2,EndGameText.get_width(),EndGameText.get_height()],0)
+        if(CanModifyScore):
+            with open("score.txt", "r") as f:
+                HighScore = f.read()
+                print(f.read(),"ssssssssssssss")
+                f.close()
+            with open("score.txt", "w") as f:
+                if(int(HighScore)<score):
+                    f.write(f"{score}")
+                    if(score>int(HighScore)):
+                        performance = "Great Game"
+                    else:
+                        performance = "Good Game"
+                    HighScore = score
+                f.close()
+            CanModifyScore = False
+        EndGameText = myfont.render(f"{performance} Score: {score}", 0, "red")
+        HighText = myfont.render(f"HighScore: {HighScore}", 0, "red")
+        congrats = myfont.render(f"Better luck next time", 0, "red")
+        exit = myfont.render(f"press q to exit", 0, "red")
+        pygame.draw.rect(screen,"#00FFB9"
+                        ,[(screen.get_width() / 2)-(congrats.get_width()/2), screen.get_height()/2
+                        ,congrats.get_width(),EndGameText.get_height()*4],0)
         screen.blit(EndGameText, ((screen.get_width() / 2)-(EndGameText.get_width()/2), screen.get_height()/2))
-    
+        screen.blit(HighText, ((screen.get_width() / 2)-(HighText.get_width()/2), (screen.get_height()/2)+EndGameText.get_height()))
+        screen.blit(congrats, ((screen.get_width() / 2)-(congrats.get_width()/2), (screen.get_height()/2)+EndGameText.get_height()+HighText.get_height()))
+        screen.blit(exit, ((screen.get_width() / 2)-(exit.get_width()/2), (screen.get_height()/2)+EndGameText.get_height()+congrats.get_height()+HighText.get_height()))
+
     scoretext = myfont.render(f"Score: {score}", 0, "red")
     pygame.draw.rect(screen,"#00FFB9",[50,25,scoretext.get_width(),scoretext.get_height()],0)
     screen.blit(scoretext, (50, 25))
